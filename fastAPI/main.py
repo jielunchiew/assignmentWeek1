@@ -1,25 +1,16 @@
 from fastapi import FastAPI
-import models
-from database import engine, SessionLocal
+from models import Base
+from database import engine
+from routers import owners, pets
 
 app = FastAPI()
-models.Base.metadata.create_all(bind=engine)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
-@app.post("/create_owner/")
-async def create_owner(owner: models.Owner):
-    db = SessionLocal()
-    db.add(owner)
-    db.commit()
-    db.refresh(owner)
-    return owner
+app.include_router(owners.router)
+app.include_router(pets.router)
+
