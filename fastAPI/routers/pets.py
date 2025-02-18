@@ -46,12 +46,18 @@ async def get_pets(owner_id: Annotated[int, Path(..., gt=0)], db: db_dependency)
 
 
 # User can find all pets belonging to a certain owner
-@router.get("/all-pets/{owner_name}",status_code=status.HTTP_200_OK) #Find by owner name
-async def get_all_pets(owner_name: Annotated[str, Path(min_length=1)], db: db_dependency):
-    owner = db.query(Owners).filter(
-        func.lower(func.concat(Owners.first_name, ' ', Owners.last_name)) == func.lower(owner_name)
-    ).first()
+@router.get("/all-pets/", status_code=status.HTTP_200_OK)
+async def get_all_pets(db: db_dependency, owner_id: Annotated[int, Query(gt=0)], owner_name: Annotated[str, Query(min_length=1)]):
+    if owner_id is not None:
+        owner = db.query(Owners).filter(Owners.id == owner_id).first()
 
+    elif owner_name is not None:
+        owner = db.query(Owners).filter(
+            func.lower(func.concat(Owners.first_name, ' ', Owners.last_name)) == func.lower(owner_name)
+        ).first()
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please provide either owner_id or owner_name") 
+    
     if not owner:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Owner not found")
     
@@ -116,7 +122,7 @@ async def delete_pet(pet_id: Annotated[int, Path(gt=0)], db: db_dependency):
 
         db.commit()
         return {"message": "Pet deleted successfully"}
-    except SQLAlchemyError:
+    except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
