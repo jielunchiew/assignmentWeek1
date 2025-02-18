@@ -1,7 +1,7 @@
 from database import Base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 
-class Owner(Base):
+class Owners(Base):
     __tablename__ = "owners"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -11,7 +11,7 @@ class Owner(Base):
     date_modified = Column(DateTime)
 
 
-class Pet(Base):
+class Pets(Base):
     __tablename__ = "pets"
     
     id = Column(Integer, primary_key=True, index=True)
